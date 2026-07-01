@@ -1,0 +1,69 @@
+package com.service;
+
+import com.entity.CartItem;
+import com.repository.CartItemRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class CartService {
+
+    @Autowired
+    private CartItemRepository cartItemRepository;
+
+    public Optional<CartItem> getCartItem(Integer userId, Integer productId) {
+        return cartItemRepository.findByUserIdAndProductId(userId, productId);
+    }
+
+    public void addItemToCart(CartItem cartItem) {
+        Optional<CartItem> item = cartItemRepository.findByUserIdAndProductId(cartItem.getUserId(),
+                cartItem.getProductId());
+        if (item.isPresent()) {
+            item.get().setQuantity(item.get().getQuantity() + cartItem.getQuantity());
+            cartItemRepository.save(item.get());
+            return;
+        }
+        cartItemRepository.save(cartItem);
+    }
+
+    public boolean updateCartItem(CartItem cartItem) {
+        Optional<CartItem> item = cartItemRepository.findByUserIdAndProductId(cartItem.getUserId(),
+                cartItem.getProductId());
+        if (item.isPresent()) {
+            item.get().setQuantity(item.get().getQuantity() + cartItem.getQuantity());
+            cartItemRepository.save(item.get());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeCartItem(CartItem cartItem) {
+        Optional<CartItem> item = cartItemRepository.findByUserIdAndProductId(cartItem.getUserId(),
+                cartItem.getProductId());
+        if (item.isPresent()) {
+            cartItemRepository.delete(item.get());
+            return true;
+        }
+        return false;
+    }
+
+    public void removeCartItemWhenCreateOrder(Integer userId, Integer productId) {
+        Optional<CartItem> item = cartItemRepository.findByUserIdAndProductId(userId, productId);
+        if (item.isPresent()) {
+            cartItemRepository.delete(item.get());
+        }
+    }
+
+    public List<CartItem> getCartItems(Integer userId) {
+        return cartItemRepository.findCartItemsByUserId(userId);
+    }
+
+    public void deleteAllCartItems(Integer userId) {
+        List<CartItem> cartItems = cartItemRepository.findCartItemsByUserId(userId);
+        cartItemRepository.deleteAll(cartItems);
+    }
+
+}
